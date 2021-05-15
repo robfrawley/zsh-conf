@@ -1,0 +1,11 @@
+${HOME}/bin
+${HOME}/opt/.bin
+${HOME}/.symfony/bin
+/scr/bin
+/code/bin
+/scripts/bin
+/storage/scripts
+/opt/jetbrains/bin
+${HOME}/.yarn/bin
+${HOME}/.cargo/bin
+${HOME}/.venv/bin-enabled

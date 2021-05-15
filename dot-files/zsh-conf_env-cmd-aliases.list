@@ -1,0 +1,2 @@
+zshconfig=${EDITOR} ~/.zshrc
+ohmyzsh=${EDITOR} ~/.oh-my-zsh
