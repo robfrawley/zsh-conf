@@ -3,7 +3,7 @@
 zmodload zsh/mapfile
 
 _zc__cmd_aliases=("${(f)mapfile[$(
-    _zc__get_user_conf_file 'dots' 'zsh-conf_env-cmd-aliases.list'
+    _zc__get_user_conf_file 'dots' "${_zc__dots_file_assign_cmd_aliases_list}"
 )]}")
 
 for l in ${(a)_zc__cmd_aliases}; do

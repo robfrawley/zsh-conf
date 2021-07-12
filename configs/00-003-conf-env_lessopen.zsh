@@ -7,7 +7,7 @@ for _zc__less_colorize_bin_name in chroma pygmentize; do
 
 		_zc__dbg_act_init 'Exported new env variable: "LESSOPEN" => "%s"' "${_zc__less_colorize_cmd}"
 		export LESSOPEN="${_zc__less_colorize_cmd}"
-		_zc__dbg_act_ends $?
+		_zc__dbg_act_ends ${?}
 
 		break
 	fi

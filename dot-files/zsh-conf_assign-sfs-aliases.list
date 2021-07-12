@@ -1,0 +1,6 @@
+twoface.systems_pool=rmf@twoface.systems:/pool#22100
+twoface.systems_home-rmf=rmf@twoface.systems:/home/rmf#22100
+twoface.systems_home-rto=rto@twoface.systems:/home/rto#22100
+src.run_web=rmf@src.run:/web
+src.run_home-rmf=rmf@src.run:/home/rmf
+symba.systems_pool=rmf@symba.systems:/volume1

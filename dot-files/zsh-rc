@@ -63,12 +63,15 @@ DISABLE_UNTRACKED_FILES_DIRTY="true"
 # see 'man strftime' for details.
 HIST_STAMPS="yyyy-mm-dd"
 
+# skip the verification of insecure directories
+ZSH_DISABLE_COMPFIX="true"
+
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(alias-finder autojump chruby colored-man-pages colorize command-not-found composer cp extract frontend-search gcloud gem git git-extras git-lfs gitignore golang gpg-agent grunt gulp history keychain man node npm nvm pip pipenv redis-cli ripgrep rsync safe-paste screen sublime sublime-merge sudo symfony2 systemd timer ubuntu ufw urltools vscode yarn wakatime zsh-interactive-cd zsh-autosuggestions zsh-syntax-highlighting)
+plugins=(alias-finder autojump chruby colored-man-pages colorize command-not-found composer cp extract frontend-search gcloud gem git git-extras git-lfs gitignore golang gpg-agent grunt gulp history keychain man node npm pip pipenv redis-cli ripgrep rsync safe-paste screen sublime sublime-merge sudo symfony2 systemd timer ubuntu ufw urltools vscode yarn wakatime zsh-interactive-cd zsh-autosuggestions zsh-syntax-highlighting)
 
 # custom oh-my-zsh scipts/plugins/themes folder
 export ZSH_CUSTOM="${HOME}/.zsh-conf/_"

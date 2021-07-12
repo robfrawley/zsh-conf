@@ -18,4 +18,4 @@ fi
 # assign language environment variable
 _zc__dbg_act_init 'Exported new env variable: "EDITOR" => "%s"' "${_zc__export_editor}"
 export EDITOR="${_zc__export_editor}"
-_zc__dbg_act_ends $?
+_zc__dbg_act_ends ${?}

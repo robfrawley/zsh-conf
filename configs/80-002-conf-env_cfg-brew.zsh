@@ -30,15 +30,15 @@ function _zc__fetch_brew_vers_semv() { _zc__assay_brew_vers_text | _zc__parse_br
 
 _zc__dbg_act_init 'Checking brew path assets: "BREW_ROOT_PATH" => "%s"' "${_zc__brew_root_path}"
 _zc__check_brew_root_path
-_zc__dbg_act_ends $?
+_zc__dbg_act_ends ${?}
 
 _zc__dbg_act_init 'Checking brew path assets: "BREW_BINS_PATH" => "%s"' "${_zc__brew_bins_path}"
 _zc__check_brew_bins_path
-_zc__dbg_act_ends $?
+_zc__dbg_act_ends ${?}
 
 _zc__dbg_act_init 'Checking brew path assets: "BREW_EXEC_FILE" => "%s"' "${_zc__brew_exec_file}"
 _zc__check_brew_exec_file
-_zc__dbg_act_ends $?
+_zc__dbg_act_ends ${?}
 
 #
 # check that all expected paths and files exist and are readable
@@ -59,9 +59,5 @@ else
     #
     _zc__dbg_act_init 'Invoking brew environment: "BREW_EVAL_CALL" => "%s"' "eval \"\$(\"${_zc__brew_exec_file}\" ${_zc__brew_exec_opts})\""
     eval "$("${_zc__brew_exec_file}" ${_zc__brew_exec_opts})" &> /dev/null
-    _zc__dbg_act_ends $?
+    _zc__dbg_act_ends ${?}
 fi
-
-#
-# eof
-#
