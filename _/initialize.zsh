@@ -41,23 +41,26 @@ export _zc__plug_path="${_zc__root_path}/plugins"
 # export dot-files path of this project
 export _zc__dots_path="${_zc__root_path}/dot-files"
 
-# export user-configurable home directory dot-filenames: assign_cmd_aliases
+# define path to config file (checks user home dot file then repo default): zsh-conf_assign-cmd-aliases.list
 export _zc__dots_file_assign_cmd_aliases_list='zsh-conf_assign-cmd-aliases.list'
 
-# export user-configurable home directory dot-filenames: assign_env_exports
+# define path to config file (checks user home dot file then repo default): zsh-conf_assign-env-exports.list
 export _zc__dots_file_assign_env_exports_list='zsh-conf_assign-env-exports.list'
 
-# export user-configurable home directory dot-filenames: assign_sfs_aliases
+# define path to config file (checks user home dot file then repo default): zsh-conf_assign-sfs-aliases.list
 export _zc__dots_file_assign_sfs_aliases_list='zsh-conf_assign-sfs-aliases.list'
 
-# export user-configurable home directory dot-filenames: assign_ssh_aliases
+# define path to config file (checks user home dot file then repo default): zsh-conf_assign-ssh-aliases.list
 export _zc__dots_file_assign_ssh_aliases_list='zsh-conf_assign-ssh-aliases.list'
 
-# export user-configurable home directory dot-filenames: prefix_dir_to_path
+# define path to config file (checks user home dot file then repo default): zsh-conf_prefix-dir-to-path.list
 export _zc__dots_file_prefix_dir_to_path_list='zsh-conf_prefix-dir-to-path.list'
 
-# export user-configurable home directory dot-filenames: append_dir_to_path
+# define path to config file (checks user home dot file then repo default): zsh-conf_append-dir-to-path.list
 export _zc__dots_file_append_dir_to_path_list='zsh-conf_append-dir-to-path.list'
+
+# define path to config file (checks user home dot file then repo default): zsh-conf_source-obj-entries.list
+export _zc__dots_file_append_dir_to_path_list='zsh-conf_source-obj-entries.list'
 
 ##
 ## define global config functions
