@@ -1,6 +1,55 @@
 
-# Display loading text
-#printf 'Loading ZSH environment ... \n'
+##
+## ZSHRC
+##
+
+ENV_TERM_TYPE="$(basename "${SHELL:-zsh}")"
+ENV_DATE_TIME="$(
+  printf '%s-%010d.%09d' $(
+    r="${RANDOM}${RANDOM: -3}${RANDOM:2}${RANDOM: -4:2}${RANDOM:1:4}"
+    /usr/local/bin/gdate '+date %s %N' 2> /dev/null \
+      || date '+date %s' 2> /dev/null \
+      || printf 'rand %03d%02d%02d%03d %02d%03d%02d%02d' \
+        "${r:0:3}"   "${r:3:2}" "${r: -2}" "${r: -7:-4}" \
+        "${r: -5:2}" "${r:6:3}" "${r: -2}" "${r: -3:-1}"
+  )
+)"
+
+ENV_HIST_ROOT="${HOME}/"
+ENV_HIST_FILE="${ENV_HIST_ROOT}.zsh-env-log-files.list"
+
+ENV_LOGS_ROOT="${TMPDIR:-${HOME}/.tmp/}"
+ENV_LOGS_FILE="$(
+  printf \
+    '%s%s-shell_zshrc-env_%s.log' \
+    "${ENV_LOGS_ROOT}" \
+    "${ENV_TERM_TYPE}" \
+    "${ENV_DATE_TIME}"
+)"
+
+for v in ENV_TERM_TYPE ENV_DATE_TIME ENV_HIST_ROOT ENV_HIST_FILE ENV_LOGS_ROOT ENV_LOGS_FILE; do
+	printf 'VAR[%s] => "%s"\n' "${v}" "${(P)v}"
+done
+
+printf 'FILE: "%s"\n' "${ENV_LOGS_FILE}" >> "${ENV_HIST_FILE}"
+
+printf '\n\n## [%s:ENV-VARIABLES]\n\n' "${ENV_DATE_TIME}" >> "${ENV_LOGS_FILE}"
+env >> "${ENV_LOGS_FILE}"
+
+printf '\n\n## [%s:ALL-FUNCTIONS]\n\n' "${ENV_DATE_TIME}" >> "${ENV_LOGS_FILE}"
+print -l ${(ok)functions} >> "${ENV_LOGS_FILE}"
+
+printf '\n\n## [%s:ALL-VARIABLES]\n\n' "${ENV_DATE_TIME}" >> "${ENV_LOGS_FILE}"
+set \
+  | sort -h \
+  | sed -E 's/^([^=]+)=(.*)$/- "\1" => [\2]/' \
+  | sed -E 's/^([^-=]+)$/- "\1" => NULL/' \
+  | sed -E 's/^-/VAR:/' \
+    >> "${ENV_LOGS_FILE}"
+
+#
+# configure oh-my-zsh
+#
 
 # Path to your oh-my-zsh installation.
 export ZSH="${HOME}/.oh-my-zsh"
@@ -10,6 +59,10 @@ export ZSH="${HOME}/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# Define any theme-specific variables to configure behavior of the
+# above selected theme.
+POWERLEVEL9K_MODE="awesome-patched"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -22,16 +75,16 @@ CASE_SENSITIVE="true"
 
 # Uncomment the following line to use hyphen-insensitive completion.
 # Case-sensitive completion must be off. _ and - will be interchangeable.
-HYPHEN_INSENSITIVE="false"
+HYPHEN_INSENSITIVE="true"
 
 # Uncomment the following line to disable bi-weekly auto-update checks.
 DISABLE_AUTO_UPDATE="false"
 
 # Uncomment the following line to automatically update without prompting.
-DISABLE_UPDATE_PROMPT="false"
+DISABLE_UPDATE_PROMPT="true"
 
 # Uncomment the following line to change how often to auto-update (in days).
-export UPDATE_ZSH_DAYS=7
+export UPDATE_ZSH_DAYS=2
 
 # Uncomment the following line if pasting URLs and other text is messed up.
 DISABLE_MAGIC_FUNCTIONS="false"
@@ -71,7 +124,13 @@ ZSH_DISABLE_COMPFIX="true"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(alias-finder autojump chruby colored-man-pages colorize command-not-found composer cp extract frontend-search gcloud gem git git-extras git-lfs gitignore golang gpg-agent grunt gulp history keychain man node npm pip pipenv redis-cli ripgrep rsync safe-paste screen sublime sublime-merge sudo symfony2 systemd timer ubuntu ufw urltools vscode yarn wakatime zsh-interactive-cd zsh-autosuggestions zsh-syntax-highlighting)
+plugins=()
+
+if [[ $(uname -s) == 'Darwin' ]]; then
+	plugins=(brew osx)
+fi
+
+plugins+=(alias-finder aliases ansible autojump battery bgnotify colored-man-pages colorize command-not-found composer cp emoji emoji-clock extract gem git git-auto-fetch git-extras git-lfs git-prompt gitignore golang gnu-utils gpg-agent grunt gulp history keychain man node npm pip pipenv pylint python redis-cli ripgrep ruby rsync safe-paste screen sublime sublime-merge sudo symfony2 timer urltools vscode wakatime xcode yarn zsh-interactive-cd zsh-autosuggestions zsh-syntax-highlighting)
 
 # custom oh-my-zsh scipts/plugins/themes folder
 export ZSH_CUSTOM="${HOME}/.zsh-conf/_"
@@ -88,8 +147,18 @@ zstyle :omz:plugins:keychain identities \
 	$(ls -1 ${HOME}/.ssh/id_* 2> /dev/null | grep -oE 'id_[^\.\n]+$' | uniq | xargs) \
 	$(gpg --list-keys 2> /dev/null | grep -oE '[A-Z0-9]{20,}' | uniq | xargs)
 
+typeset -A ZSH_HIGHLIGHT_PATTERNS
+typeset -A ZSH_HIGHLIGHT_REGEXP
+
+ZSH_HIGHLIGHT_PATTERNS+=('rm -rf *' 'fg=white,bold,bg=red')
+ZSH_HIGHLIGHT_REGEXP+=('\bsudo\b' fg=123,bold)
+ZSH_HIGHLIGHT_REGEXP+=('\bsudo\b' fg=123,bold)
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor root)
+
 # source oh-my-zsh
 source $ZSH/oh-my-zsh.sh
+
+eval $(dircolors)
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

@@ -13,3 +13,9 @@
 [submodule "themes/romkatv/powerlevel10k"]
 	path = lib/themes/powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
+[submodule "lib/share/nanorc"]
+	path = lib/share/nanorc
+	url = git@github.com:scopatz/nanorc.git
+[submodule "lib/plugins/zsh-interactive-cd"]
+	path = lib/plugins/zsh-interactive-cd
+	url = git@github.com:changyuheng/zsh-interactive-cd.git

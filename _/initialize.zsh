@@ -11,10 +11,10 @@ export _zc__start="$(date +%s.%N)"
 export _zc__debug="${_zc__debug:-false}"
 
 # configures whether quiet mode is enabled
-export _zc__quiet="${_zc__quiet:-false}"
+export _zc__quiet="${_zc__quiet:-true}"
 
 # configures whether logging is enabled
-export _zc__logging="${_zc__logging:-true}"
+export _zc__logging="${_zc__logging:-false}"
 
 # configures the file to log to
 export _zc__logpath="${_zc__logpath:-${HOME}/.zsh-conf.log}"
@@ -32,14 +32,23 @@ export _zc__root_path="$(
     printf -- "${ZSH_CUSTOM}/.."
 )"
 
-# export configs path of this project
-export _zc__conf_path="${_zc__root_path}/configs"
+# export etc path of this project
+export _zc__etcs_path="${_zc__root_path}/etc"
 
-# export plugins path of this project
-export _zc__plug_path="${_zc__root_path}/plugins"
+# export lib path of this project
+export _zc__libs_path="${_zc__root_path}/lib"
+
+# export cfg files path of this project
+export _zc__conf_path="${_zc__etcs_path}/cfg-files"
 
 # export dot-files path of this project
-export _zc__dots_path="${_zc__root_path}/dot-files"
+export _zc__dots_path="${_zc__etcs_path}/dot-files"
+
+# export plugins path of this project
+export _zc__plug_path="${_zc__libs_path}/plugins"
+
+# export themes path of this project
+export _zc__thms_path="${_zc__libs_path}/themes"
 
 # define path to config file (checks user home dot file then repo default): zsh-conf_assign-cmd-aliases.list
 export _zc__dots_file_assign_cmd_aliases_list='zsh-conf_assign-cmd-aliases.list'
@@ -93,6 +102,49 @@ function _zc__try_to_call() {
     _zc__is_function "${1}" && ${1} "${@:2}"
 }
 
+# handle printf error text
+function _zc__out_failure_handler() {
+    local orig_msg="${1}"
+    local args_num="$(( ${#} - 1 ))"
+    local fail_fmt="Could not compile text "%s" with "%d" replacements(s). Error message: "%s".\n"
+    local fail_msg="$(printf -- "${@}" 2>&1 >/dev/null)"
+
+    _zc__try_to_call _zc__out_pref fail
+
+    printf -- "${fail_fmt}" "${orig_msg}" "${args_num}" "${fail_msg}" 2> /dev/null
+}
+
+# text print wrapper around printf to avoid easily caused errors
+function _zc__prt() {
+    local    buffer
+    local    end_nl="${1:-f}"
+    local    format="${2}"
+    local -a argset=("${@:3}")
+
+    if [[ -n ${format} ]] && ! buffer="$(printf -- "${format}" "${(v)argset}" 2> /dev/null)"; then
+        end_nl=true
+        buffer="$(
+            _zc__out_failure_handler "${format}" "${(v)argset}"
+        )"
+    fi
+
+    printf -- '%s' "${buffer}"
+
+    if _zc__bool_to_ret "${end_nl}"; then
+        printf -- '\n'
+    fi
+}
+
+# text print wrapper around printf to avoid easily caused errors
+function _zc__prt_text() {
+    _zc__prt f "${@}"
+}
+
+# text print wrapper around printf to avoid easily caused errors
+function _zc__prt_line() {
+    _zc__prt t "${@}"
+}
+
 # parse bool-castable value to "true" or "false" string value
 function _zc__bool_to_str() {
     local -a boolean_set_t=("${boolean_str_t}" '1' 't' 'true'  'enable'  'enabled'  'on' )
@@ -102,20 +154,23 @@ function _zc__bool_to_str() {
     local    boolean_str_f="${3:-false}"
     local    default_value="${4:-}"
 
-    [[ -n ${default_value} ]] && \
-        default_value="$(_zc__bool_to_str "${default_value}" "${boolean_str_t}" "${boolean_str_f}")"
-    [[ -z ${default_value} ]] && \
+    if [[ -n ${default_value} ]]; then
+        default_value="$(
+            _zc__bool_to_str "${default_value}" "${boolean_str_t}" "${boolean_str_f}"
+        )"
+    fi
+
+    if [[ -z ${default_value} ]]; then
         default_value="${boolean_str_f}"
+    fi
 
     if _zc__has_matches "${imputed_value}" "${boolean_set_t[@]}"; then
-        printf -- "${boolean_str_t}"; return
+        _zc__prt_text "${boolean_str_t}"
+    elif _zc__has_matches "${imputed_value}" "${boolean_set_f[@]}"; then
+        _zc__prt_text "${boolean_str_f}"
+    else
+        _zc__prt_text "${default_value}"
     fi
-
-    if _zc__has_matches "${imputed_value}" "${boolean_set_f[@]}"; then
-        printf -- "${boolean_str_f}"; return
-    fi
-
-    printf -- "${default_value}"
 }
 
 # parses bool values (and "bool-like" or "bool-castable" values) to a bool return code of either 0 or 1
@@ -141,27 +196,31 @@ function _zc__bool_to_ret() {
 
 # parses bool-castable values and checks if result is true
 function _zc__bool_is_t() {
-    _zc__bool_to_ret "${@}" || return 1
+    _zc__bool_to_ret "${@}"
 }
 
 # parses bool-castable values and checks if result is false
 function _zc__bool_is_f() {
-    ! _zc__bool_to_ret "${@}" || return 1
+    ! _zc__bool_to_ret "${@}"
 }
 
 # returns a status code of 0 or 1 to signify if debug mode is enabled
 function _zc__is_debug_enabled() {
+    _zc__bool_is_t "${_zc__debug}"
+    printf '[debug](%d) ' "${?}"
     _zc__bool_is_t "${_zc__debug}"
 }
 
 # returns a status code of 0 or 1 to signify if silent mode is enabled
 function _zc__is_quiet_enabled() {
     _zc__bool_is_f "${_zc__debug}" && _zc__bool_is_t "${_zc__quiet}"
+    printf '[quiet](%d) ' "${?}"
+    _zc__bool_is_f "${_zc__debug}" && _zc__bool_is_t "${_zc__quiet}"
 }
 
 # gets the current output indentation level
 function _zc__out_lvls_get() {
-    printf -- '%d' "${_zc__out_lvl:-0}"
+    _zc__prt_text '%d' "${_zc__out_lvl:-0}"
 }
 
 # increases the output indentation level
@@ -184,31 +243,12 @@ function _zc__log() {
     _zc__logpath
 }
 
-# handle printf error text
-function _zc__out_failure_handler() {
-    local orig_msg="${1}"
-    local args_num="$(( ${#} - 1 ))"
-    local fail_fmt="Could not compile text "%s" with "%d" replacements(s). Error message: "%s".\n"
-    local fail_msg="$(printf -- "${@}" 2>&1 >/dev/null)"
-
-    _zc__try_to_call _zc__out_pref fail
-
-    printf -- "${fail_fmt}" "${orig_msg}" "${args_num}" "${fail_msg}" 2> /dev/null
-}
-
 # text output wrapper around printf to avoid easily caused errors
 function _zc__out() {
-    local out_buffer
+    _zc__is_quiet_enabled \
+        && return
 
-    if [[ -n ${2} ]] && ! out_buffer="$(printf -- "${@:2}" 2> /dev/null)"; then
-        out_buffer="$(_zc__out_failure_handler "${@:2}")"
-    fi
-
-    if _zc__bool_to_ret "${1}"; then
-        out_buffer+='\n'
-    fi
-
-    printf "${out_buffer}"
+    _zc__prt "${@}"
 }
 
 # text output wrapper around printf to avoid easily caused errors
@@ -243,10 +283,10 @@ function _zc__str_pad() {
     [[ ${size} -lt 0 ]] && size=0
 
     case "${side:l}" in
-        l|left         ) _zc__out_text "${(l:$size:: :)text}" ;;
-        r|right        ) _zc__out_text "${(r:$size:: :)text}" ;;
-        b|both|c|center) +zc__out_text "${(r:$size:: :)${(l:$(( size-((size-${#text})/2) )):: :)text}}" ;;
-        *              ) _zc__out_text "${text}"              ;;
+        l|left         ) _zc__prt_text "${(l:$size:: :)text}" ;;
+        r|right        ) _zc__prt_text "${(r:$size:: :)text}" ;;
+        b|both|c|center) _zc__prt_text "${(r:$size:: :)${(l:$(( size-((size-${#text})/2) )):: :)text}}" ;;
+        *              ) _zc__prt_text "${text}"              ;;
     esac
 }
 
@@ -259,21 +299,21 @@ function _zc__int_pad() {
     [[ ${size} -lt 0 ]] && size=0
 
     case "${side:l}" in
-        l|left         ) _zc__out_text "${(l:$size::0:)text}" ;;
-        r|right        ) _zc__out_text "${(r:$size::0:)text}" ;;
-        b|both|c|center) +zc__out_text "${(r:$size::0:)${(l:$(( size-((size-${#text})/2) ))::0:)text}}" ;;
-        *              ) _zc__out_text "${text}"              ;;
+        l|left         ) _zc__prt_text "${(l:$size::0:)text}" ;;
+        r|right        ) _zc__prt_text "${(r:$size::0:)text}" ;;
+        b|both|c|center) _zc__prt_text "${(r:$size::0:)${(l:$(( size-((size-${#text})/2) ))::0:)text}}" ;;
+        *              ) _zc__prt_text "${text}"              ;;
     esac
 }
 
 # translate prefix type to characters
 function _zc__pre_char() {
     case "${1}" in
-        info ) _zc__out_text '##' ;;
-        note ) _zc__out_text '--' ;;
-        warn ) _zc__out_text '!!' ;;
-        fail ) _zc__out_text '!!' ;;
-        debug) _zc__out_text '//' ;;
+        info ) _zc__prt_text '##' ;;
+        note ) _zc__prt_text '--' ;;
+        warn ) _zc__prt_text '!!' ;;
+        fail ) _zc__prt_text '!!' ;;
+        debug) _zc__prt_text '//' ;;
     esac
 }
 
@@ -292,7 +332,12 @@ function _zc__out_pref() {
 # output a "typed" log line
 function _zc__out_type() {
     _zc__out_pref "${1}"
-    _zc__out "${@:2}"
+
+    if _zc__bool_to_ret "${2:-f}"; then
+        _zc__out_line "${@:3}"
+    else
+        _zc__out_line "${@:3}"
+    fi
 }
 
 # output an "info-typed" log line
@@ -305,7 +350,7 @@ function _zc__out_info() {
 # output an "note-typed" log line
 function _zc__out_note() {
     if ! _zc__is_quiet_enabled; then
-        _zc__out_type note n "${@}"
+        _zc__out_type note t "${@}"
     fi
 }
 
@@ -411,7 +456,7 @@ function _zc__sel_user_conf_file() {
 
     for f in ${(a)files}; do
         if [[ -r ${f} ]] && [[ -s ${f} ]]; then
-            _zc__out_text "${f}"
+            _zc__prt_text "${f}"
             return
         fi
     done
@@ -423,14 +468,14 @@ function _zc__sel_user_conf_file() {
 function _zc__get_user_conf_file() {
     local type="${1}"
     local name="${2}"
-    local ivar="$(_zc__out_text '_zc__%s_path' "${type}")"
+    local ivar="$(_zc__prt_text '_zc__%s_path' "${type}")"
 
     _zc__sel_user_conf_file "${_zc__user_path}/.${name}" "${(P)ivar:-${_zc__root_path}}/${name}"
 }
 
 # resolves shell-expanded value from passed value
 function _zc__get_val_expands() {
-    _zc__out_text "${~${(e)1}}"
+    _zc__prt_text "${~${(e)1}}"
 }
 
 # resolves verbose version of _zc__get_val_expands
@@ -439,9 +484,9 @@ function _zc__get_val_verbose() {
     local val_expand="$(_zc__get_val_expands "${1}")"
 
     if [[ ${val_normal} == ${val_expand} ]]; then
-        _zc__out_text '%s' "${val_normal}"
+        _zc__prt_text '%s' "${val_normal}"
     else
-        _zc__out_text '%s (%s)' "${val_normal}" "${val_expand}"
+        _zc__prt_text '%s (%s)' "${val_normal}" "${val_expand}"
     fi
 }
 
@@ -469,7 +514,7 @@ function _zc__run_cfg_env_path_var_cmd() {
     local exported_retn=0
 
     _zc__dbg_act_init 'Adding user-reqd dir to PATH env variable: "%s" (position: %s)' "$(_zc__get_val_verbose "${inputted_path}")" "$(
-        _zc__bool_is_t "${position_prfx}" && _zc__out_text 'prefixed' || zc__out_text 'appended'
+        _zc__bool_is_t "${position_prfx}" && _zc__prt_text 'prefixed' || zc__prt_text 'appended'
     )"
 
     if [[ ! -d ${expanded_path} ]]; then
@@ -514,7 +559,7 @@ function _zc__run_alias_ssh() {
 
     _zc__dbg_act_init 'Assigned new ssh aliasing: "%s" => "%s"' "ssh-${name}" "${user}@${host}:${port}"
     alias "ssh-${name}"="$(
-        printf "clear && printf '\\\n##\\\n## [NAME] => \"ssh alias command: %s\"\\\n## [USER] => \"%s\"\\\n## [HOST] => \"%s\"\\\n## [PORT] => \"%s\"\\\n##\\\n\\\n' && sleep 2 && ssh -p%d %s@%s" \
+        printf -- "clear && printf '\\\n##\\\n## [NAME] => \"ssh alias command: %s\"\\\n## [USER] => \"%s\"\\\n## [HOST] => \"%s\"\\\n## [PORT] => \"%s\"\\\n##\\\n\\\n' && sleep 2 && ssh -p%d %s@%s" \
             "${name}" \
             "${user}" \
             "${host}" \
@@ -571,18 +616,6 @@ function _zc__run_alias_sfs() {
     )" 2> /dev/null
     _zc__dbg_act_ends ${?}
 
-#clear;
-#printf '\n##\n## [MNT_NAME] => "sshfs umount alias: src-run-web"\n## [USERNAME] => "rmf"\n## [HOSTNAME] => "src.run"\n## [PORT_NUM] => "22"\n## [RMT_PATH] => "/web"\n## [LCL_PATH] => "/mnt/src-run-web"\n##\n\n';
-#printf 'Attempting to perform sshfs umount operations now ... ';
-#mount | grep '/mnt/src-run-web type fuse.sshfs' &> /dev/null \
-#  && {
-#    sudo umount /mnt/src-run-web &> /dev/null \
-#      && printf '[success] (disconnected sshfs mount at /mnt/src-run-web)\n' \
-#      || printf '[failure] (encountered an unexpected error)\n';
-#  } || {
-#    printf '[failure] (could not detect existing sshfs mount at /mnt/src-run-web);\n'
-#  }
-#
     _zc__dbg_act_init 'Assigned new sshfs umount: "sshfs-umount-%s" => "%s"' "${name}" "${user}@${host}:${port}#${rdir}"
     alias "sshfs-umount-${name}"="$(
         printf "clear; printf '\\\n##\\\n## [MNT_NAME] => \"sshfs umount alias: %s\"\\\n## [USERNAME] => \"%s\"\\\n## [HOSTNAME] => \"%s\"\\\n## [PORT_NUM] => \"%s\"\\\n## [RMT_PATH] => \"%s\"\\\n## [LCL_PATH] => \"%s\"\\\n##\\\n\\\n'; printf '-- Attempting to perform sshfs umount operations now ... '; mount | grep '%s type fuse.sshfs' &> /dev/null && { sudo umount "%s" &> /dev/null && printf '[success] (disconnected sshfs mount at "%s")\n\n' || printf '[failure] (encountered an unexpected error)\n\n'; } || { printf '[failure] (could not detect existing sshfs mount at "%s")\n\n'; }" \

@@ -10,3 +10,4 @@ ${HOME}/.yarn/bin
 ${HOME}/.cargo/bin
 ${HOME}/.venv/bin-enabled
 ${HOME}/scripts/bin-enabled
+${HOME}/.toolbox
